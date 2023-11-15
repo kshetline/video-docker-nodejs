@@ -1,0 +1,50 @@
+version: "3.1"
+
+networks:
+  lan_access:
+    driver: bridge
+
+volumes:
+  video:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.42.13
+      device: :mnt/user/video
+  streaming:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.42.13
+      device: :mnt/user/streaming
+
+services:
+  nodejs:
+    image: node:18
+    environment: 
+      - VS_ALLOW_ADMIN=true
+      - VS_ALLOW_CORS=true
+      - VS_CERT=${VS_CERT}
+      - VS_DEMO_FILTER=${VS_DEMO_FILTER}
+      - VS_GUEST_FILTER=${VS_GUEST_FILTER}
+      - VS_INSECURE_PORT=8080
+      - VS_KEY=${VS_KEY}
+      - VS_PORT=8000
+      - VS_REQUIRED_HOST=shetline.org
+      - VS_SALT=${VS_SALT}
+      - VS_STREAMING_SOURCE=/media/streaming
+      - VS_SYM_LINK_HACK=true
+      - VS_TOKEN_SECRET=${VS_TOKEN_SECRET}
+      - VS_USE_HTTPS=true
+      - VS_VIDEO_SOURCE=/media/video
+      - VS_ZIDOO_CONNECT=http://192.168.42.71:9529/
+    ports:
+      - "8000:8000"
+      - "8080:8080"
+    working_dir: /home/app
+    restart: always
+    volumes:
+      - ./nodejs:/home/app
+      - video:/media/video
+      - streaming:/media/streaming
+    command: ["node", "app.js"]
